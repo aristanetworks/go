@@ -151,22 +151,24 @@ DEFINEFUNC(int, SHA1_Init, (GO_SHA_CTX * arg0), (arg0))
 DEFINEFUNC(int, SHA1_Update, (GO_SHA_CTX * arg0, const void *arg1, size_t arg2), (arg0, arg1, arg2))
 DEFINEFUNC(int, SHA1_Final, (uint8_t * arg0, GO_SHA_CTX *arg1), (arg0, arg1))
 
+DEFINEFUNC(int, private_SHA1_Init, (GO_SHA_CTX * arg0), (arg0))
+
 typedef SHA256_CTX GO_SHA256_CTX;
 
-DEFINEFUNC(int, SHA224_Init, (GO_SHA256_CTX * arg0), (arg0))
+DEFINEFUNC(int, private_SHA224_Init, (GO_SHA256_CTX * arg0), (arg0))
 DEFINEFUNC(int, SHA224_Update, (GO_SHA256_CTX * arg0, const void *arg1, size_t arg2), (arg0, arg1, arg2))
 DEFINEFUNC(int, SHA224_Final, (uint8_t * arg0, GO_SHA256_CTX *arg1), (arg0, arg1))
 
-DEFINEFUNC(int, SHA256_Init, (GO_SHA256_CTX * arg0), (arg0))
+DEFINEFUNC(int, private_SHA256_Init, (GO_SHA256_CTX * arg0), (arg0))
 DEFINEFUNC(int, SHA256_Update, (GO_SHA256_CTX * arg0, const void *arg1, size_t arg2), (arg0, arg1, arg2))
 DEFINEFUNC(int, SHA256_Final, (uint8_t * arg0, GO_SHA256_CTX *arg1), (arg0, arg1))
 
 typedef SHA512_CTX GO_SHA512_CTX;
-DEFINEFUNC(int, SHA384_Init, (GO_SHA512_CTX * arg0), (arg0))
+DEFINEFUNC(int, private_SHA384_Init, (GO_SHA512_CTX * arg0), (arg0))
 DEFINEFUNC(int, SHA384_Update, (GO_SHA512_CTX * arg0, const void *arg1, size_t arg2), (arg0, arg1, arg2))
 DEFINEFUNC(int, SHA384_Final, (uint8_t * arg0, GO_SHA512_CTX *arg1), (arg0, arg1))
 
-DEFINEFUNC(int, SHA512_Init, (GO_SHA512_CTX * arg0), (arg0))
+DEFINEFUNC(int, private_SHA512_Init, (GO_SHA512_CTX * arg0), (arg0))
 DEFINEFUNC(int, SHA512_Update, (GO_SHA512_CTX * arg0, const void *arg1, size_t arg2), (arg0, arg1, arg2))
 DEFINEFUNC(int, SHA512_Final, (uint8_t * arg0, GO_SHA512_CTX *arg1), (arg0, arg1))
 
