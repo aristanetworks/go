@@ -115,6 +115,9 @@ func testKeyBasics(t *testing.T, priv *PrivateKey) {
 	}
 
 	if boring.Enabled() {
+		if priv.N.BitLen() < 2048 {
+			t.Skip("boring enabled, key length must be at least 2048 bits")
+		}
 		// Cannot call encrypt/decrypt directly. Test via PKCS1v15.
 		msg := []byte("hi!")
 		enc, err := EncryptPKCS1v15(rand.Reader, &priv.PublicKey, msg)
@@ -317,6 +320,10 @@ func TestEncryptDecryptOAEP(t *testing.T) {
 		priv.PublicKey = PublicKey{N: n, E: test.e}
 		priv.D = d
 
+		if boring.Enabled() && priv.N.BitLen() < 2048 {
+			t.Log("boring enabled, key length must be at least 2048 bits")
+			continue
+		}
 		for j, message := range test.msgs {
 			label := []byte(fmt.Sprintf("hi#%d", j))
 			enc, err := EncryptOAEP(sha256, rand.Reader, &priv.PublicKey, message.in, label)
