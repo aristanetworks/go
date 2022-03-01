@@ -523,16 +523,25 @@ func runClientTestTLS10(t *testing.T, template *clientTest) {
 
 func runClientTestTLS11(t *testing.T, template *clientTest) {
 	if boring.Enabled() {
-		t.Skip("boring enabled, TLS < 1.2 not supported")
+		t.Log("boring enabled, TLS < 1.2 not supported")
+		return
 	}
 	runClientTestForVersion(t, template, "TLSv11", "-tls1_1")
 }
 
 func runClientTestTLS12(t *testing.T, template *clientTest) {
+	if boring.Enabled() {
+		t.Log("boring enabled, openssl 1.1.1 implementation is not supported")
+		return
+	}
 	runClientTestForVersion(t, template, "TLSv12", "-tls1_2")
 }
 
 func runClientTestTLS13(t *testing.T, template *clientTest) {
+	if boring.Enabled() {
+		t.Log("boring enabled, TLS > 1.2 not supported")
+		return
+	}
 	runClientTestForVersion(t, template, "TLSv13", "-tls1_3")
 }
 
@@ -884,6 +893,9 @@ func testResumption(t *testing.T, version uint16) {
 	if testing.Short() {
 		t.Skip("skipping in -short mode")
 	}
+	if boring.Enabled() && version == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	serverConfig := &Config{
 		MaxVersion:   version,
 		CipherSuites: []uint16{TLS_RSA_WITH_RC4_128_SHA, TLS_ECDHE_RSA_WITH_RC4_128_SHA},
@@ -1169,6 +1181,9 @@ func TestKeyLogTLS12(t *testing.T) {
 }
 
 func TestKeyLogTLS13(t *testing.T) {
+	if boring.Enabled() {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	var serverBuf, clientBuf bytes.Buffer
 
 	clientConfig := testConfig.Clone()
@@ -1530,6 +1545,9 @@ func TestVerifyConnection(t *testing.T) {
 }
 
 func testVerifyConnection(t *testing.T, version uint16) {
+	if boring.Enabled() && version == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	checkFields := func(c ConnectionState, called *int, errorType string) error {
 		if c.Version != version {
 			return fmt.Errorf("%s: got Version %v, want %v", errorType, c.Version, version)
@@ -1752,6 +1770,9 @@ func TestVerifyPeerCertificate(t *testing.T) {
 }
 
 func testVerifyPeerCertificate(t *testing.T, version uint16) {
+	if boring.Enabled() && version == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	issuer, err := x509.ParseCertificate(testRSACertificateIssuer)
 	if err != nil {
 		panic(err)
@@ -2102,6 +2123,9 @@ func TestBuffering(t *testing.T) {
 }
 
 func testBuffering(t *testing.T, version uint16) {
+	if boring.Enabled() && version == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	c, s := localPipe(t)
 	done := make(chan bool)
 
@@ -2346,7 +2370,7 @@ func testGetClientCertificate(t *testing.T, version uint16) {
 		clientConfig.MaxVersion = version
 
 		test.setup(clientConfig, serverConfig)
-		if boring.Enabled() && clientConfig.MaxVersion == VersionTLS11 {
+		if boring.Enabled() && clientConfig.MaxVersion == VersionTLS11 || version == VersionTLS13 {
 			t.Skip("unsupported TLS version in FIPS mode")
 		}
 
@@ -2502,6 +2526,9 @@ func TestResumptionKeepsOCSPAndSCT(t *testing.T) {
 }
 
 func testResumptionKeepsOCSPAndSCT(t *testing.T, ver uint16) {
+	if boring.Enabled() && ver == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	issuer, err := x509.ParseCertificate(testRSACertificateIssuer)
 	if err != nil {
 		t.Fatalf("failed to parse test issuer")

@@ -326,7 +326,7 @@ func TestBoringCertAlgs(t *testing.T) {
 	I_M2 := boringCert(t, "I_M2", I_R1.key, M2_R1, boringCertCA|boringCertFIPSOK)
 
 	L1_I := boringCert(t, "L1_I", boringECDSAKey(t, elliptic.P384()), I_R1, boringCertLeaf|boringCertFIPSOK)
-	L2_I := boringCert(t, "L2_I", boringRSAKey(t, 1024), I_R1, boringCertLeaf)
+	L2_I := boringCert(t, "L2_I", boringRSAKey(t, 2048), I_R1, boringCertLeaf|boringCertFIPSOK)
 	_ = boringCert(t, "L3_I", boringECDSAKey(t, elliptic.P521()), I_R1, boringCertLeaf|boringCertFIPSOK)
 
 	// boringCert checked that isBoringCertificate matches the caller's boringCertFIPSOK bit.
@@ -397,8 +397,8 @@ func TestBoringCertAlgs(t *testing.T) {
 	testServerCert(t, "basic", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, true)
 	testClientCert(t, "basic (client cert)", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, true)
 	fipstls.Force()
-	testServerCert(t, "basic (fips)", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, false)
-	testClientCert(t, "basic (fips, client cert)", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, false)
+	testServerCert(t, "basic (fips)", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, true)
+	testClientCert(t, "basic (fips, client cert)", r1pool, L2_I.key, [][]byte{L2_I.der, I_R1.der}, true)
 	fipstls.Abandon()
 
 	if t.Failed() {
@@ -573,30 +573,53 @@ func boringCert(t *testing.T, name string, key interface{}, parent *boringCertif
 // A self-signed test certificate with an RSA key of size 2048, for testing
 // RSA-PSS with SHA512. SAN of example.golang.
 var (
-	testRSA2048Certificate []byte
-	testRSA2048PrivateKey  *rsa.PrivateKey
+	testRSA2048CertificateIssuer []byte
+	testRSA2048Certificate       []byte
+	testRSA2048PrivateKey        *rsa.PrivateKey
 )
 
 func init() {
 	block, _ := pem.Decode([]byte(`
 -----BEGIN CERTIFICATE-----
-MIIC/zCCAeegAwIBAgIRALHHX/kh4+4zMU9DarzBEcQwDQYJKoZIhvcNAQELBQAw
-EjEQMA4GA1UEChMHQWNtZSBDbzAeFw0xMTAxMDExNTA0MDVaFw0yMDEyMjkxNTA0
-MDVaMBIxEDAOBgNVBAoTB0FjbWUgQ28wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
-ggEKAoIBAQCf8fk0N6ieCBX4IOVIfKitt4kGcOQLeimCfsjqqHcysMIVGEtFSM6E
-4Ay141f/7IqdW0UtIqNb4PXhROID7yDxR284xL6XbCuv/t5hP3UcehYc3hmLiyVd
-MkZQiZWtfUUJf/1qOtM+ohNg59LRWp4d+6iX0la1JL3EwCIckkNjJ9hQbF7Pb2CS
-+ES9Yo55KAap8KOblpcR8MBSN38bqnwjfQdCXvOEOjam2HUxKzEFX5MA+fA0me4C
-ioCcCRLWKl+GoN9F8fABfoZ+T+2eal4DLuO95rXR8SrOIVBh3XFOr/RVhjtXcNVF
-ZKcvDt6d68V6jAKAYKm5nlj9GPpd4v+rAgMBAAGjUDBOMA4GA1UdDwEB/wQEAwIF
-oDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMBkGA1UdEQQSMBCC
-DmV4YW1wbGUuZ29sYW5nMA0GCSqGSIb3DQEBCwUAA4IBAQCOoYsVcFCBhboqe3WH
-dC6V7XXXECmnjh01r8h80yv0NR379nSD3cw2M+HKvaXysWqrl5hjGVKw0vtwD81r
-V4JzDu7IfIog5m8+QNC+7LqDZsz88vDKOrsoySVOmUCgmCKFXew+LA+eO/iQEJTr
-7ensddOeXJEp27Ed5vW+kmWW3Qmglc2Gwy8wFrMDIqnrnOzBA4oCnDEgtXJt0zog
-nRwbfEMAWi1aQRy5dT9KA3SP9mo5SeTFSzGGHiE4s4gHUe7jvsAFF2qgtD6+wH6s
-z9b6shxnC7g5IlBKhI7SVB/Uqt2ydJ+kH1YbjMcIq6NAM5eNMKgZuJr3+zwsSgwh
-GNaE
+MIIDIjCCAgqgAwIBAgIJAMpeToEalllkMA0GCSqGSIb3DQEBCwUAMB8xCzAJBgNV
+BAoTAkdvMRAwDgYDVQQDEwdHbyBSb290MB4XDTE2MDEwMTAwMDAwMFoXDTI1MDEw
+MTAwMDAwMFowHzELMAkGA1UEChMCR28xEDAOBgNVBAMTB0dvIFJvb3QwggEiMA0G
+CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCXGHxwTSPHhkdTdjn6cjgexdaKozyL
+FeDdZA77O6nwwdcIXfTkKkUzAgP/bQNpSC7PefWl0wJcZMPLbx//0IGf/qdPENg3
++MUIWFHlhZ7tUfFx9XD3b/21R1fNL1bH1u2sLlmIWBsvGBrDuswH2QgLWGdL+abl
+ah7k5qiI/DwoLaWo6FjdAA4sGfMNf8uQGTRn2AhDXtNpZjjdI2QBSLst/Zwh1z16
+ueS61mdFv1LB43wOmlhX7buhaONSnjiB1d5vrFECWAb5zlOkj044xud6eYlrBY7I
+nchjNl9OCd6m8DGmBUqIbFODw5fQG8B1MTb15iDlWE5FZ9Bu8kNaElZNAgMBAAGj
+YTBfMA4GA1UdDwEB/wQEAwICBDAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUH
+AwEwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUuTVsSei3bf4HgYUKJIR02AY2
+dq8wDQYJKoZIhvcNAQELBQADggEBABcg7EDEptmdZRKeFg95doNLqSnOAfwrDa2t
+/DIpXJ0KQTod/IXVAHsFpf628vqn4zAOA7pDPck0qV1k2TftJP5jiRiKFAeWsH3W
+3gvnvktj7lrBPEmTfrGOq8eiNjzg7cezxH7YcCGPqKCOE2pNON4FIyZv/3WgWLWv
+aDbpqq2b6TERJRHTiDgVEYbuBILjiMiYkmqheSKwMeaLlwOiM3/Cwyrz+v4C7Dk3
+vLPib/I2PBuhjJ6Ux8XnsJbSwLDrat5CYFMRCy5EGwJ8SkLTIhRMf8j+7Gjy2VW4
++iN0hhJVu5jmqKNjCgDr/YCWEQ6thJAh0P4W4CY9USben3T63BY=
+-----END CERTIFICATE-----`))
+	testRSA2048CertificateIssuer = block.Bytes
+
+	block, _ = pem.Decode([]byte(`
+-----BEGIN CERTIFICATE-----
+MIIDFjCCAf6gAwIBAgIJAOjwnT/iW+qmMA0GCSqGSIb3DQEBCwUAMB8xCzAJBgNV
+BAoTAkdvMRAwDgYDVQQDEwdHbyBSb290MB4XDTE2MDEwMTAwMDAwMFoXDTI1MDEw
+MTAwMDAwMFowGjELMAkGA1UEChMCR28xCzAJBgNVBAMTAkdvMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn/H5NDeonggV+CDlSHyorbeJBnDkC3opgn7I
+6qh3MrDCFRhLRUjOhOAMteNX/+yKnVtFLSKjW+D14UTiA+8g8UdvOMS+l2wrr/7e
+YT91HHoWHN4Zi4slXTJGUImVrX1FCX/9ajrTPqITYOfS0VqeHfuol9JWtSS9xMAi
+HJJDYyfYUGxez29gkvhEvWKOeSgGqfCjm5aXEfDAUjd/G6p8I30HQl7zhDo2pth1
+MSsxBV+TAPnwNJnuAoqAnAkS1ipfhqDfRfHwAX6Gfk/tnmpeAy7jvea10fEqziFQ
+Yd1xTq/0VYY7V3DVRWSnLw7enevFeowCgGCpuZ5Y/Rj6XeL/qwIDAQABo1owWDAO
+BgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMAwG
+A1UdEwEB/wQCMAAwGQYDVR0RBBIwEIIOZXhhbXBsZS5nb2xhbmcwDQYJKoZIhvcN
+AQELBQADggEBAHhkPAkkwEATgzwN59YvmC3sPmiP+PYD7HGBlLlzFzHTPc3QIbyR
+Iy1wMVHn/IC+hpWokcyVqFi6Pg+nLvb6O/a08ZzQKMRjLyXji4lgBMJTHvGGqAHq
+QEl9ZTk7bZTaFOLrKS7hzofn9b9UlceReQahKYzD3tKkHnR398D0xefN9dBccilB
+WVN+Jo9LdDgKf/HS6ufW7tXeZZaqlLp46ro5sT+HI2PmRZqgwP0pKdwSrNnuq2Li
+JAuLt61TT7oo2XY7nQP41qdR0bEV0MY0wjRSxbGy3pxI/6ENKHMUZCFWNbf/JPaI
+rRVICxf1XW1NuPC0iK8uOn/t96JySEdAkfU=
 -----END CERTIFICATE-----`))
 	testRSA2048Certificate = block.Bytes
 

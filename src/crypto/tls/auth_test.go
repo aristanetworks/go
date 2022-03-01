@@ -9,10 +9,12 @@ import (
 	"testing"
 )
 
+import "crypto/internal/boring"
+
 func TestSignatureSelection(t *testing.T) {
 	rsaCert := &Certificate{
-		Certificate: [][]byte{testRSACertificate},
-		PrivateKey:  testRSAPrivateKey,
+		Certificate: [][]byte{testRSA1024Certificate},
+		PrivateKey:  testRSA1024PrivateKey,
 	}
 	pkcs1Cert := &Certificate{
 		Certificate:                  [][]byte{testRSACertificate},
@@ -57,6 +59,10 @@ func TestSignatureSelection(t *testing.T) {
 	}
 
 	for testNo, test := range tests {
+		if boring.Enabled() && !isSupportedSignatureAlgorithm(test.expectedSigAlg, supportedSignatureAlgorithms()) {
+			t.Log("boring enabled, unsupported signature algorithm")
+			continue
+		}
 		sigAlg, err := selectSignatureScheme(test.tlsVersion, test.cert, test.peerSigAlgs)
 		if err != nil {
 			t.Errorf("test[%d]: unexpected selectSignatureScheme error: %v", testNo, err)
