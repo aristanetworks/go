@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+import "crypto/internal/boring"
+
 func TestRoundUp(t *testing.T) {
 	if roundUp(0, 16) != 0 ||
 		roundUp(1, 16) != 16 ||
@@ -230,6 +232,9 @@ func runDynamicRecordSizingTest(t *testing.T, config *Config) {
 }
 
 func TestDynamicRecordSizingWithStreamCipher(t *testing.T) {
+	if boring.Enabled() {
+		t.Skip("boring enabled, TLS_RSA_WITH_RC4_128_SHA not supported")
+	}
 	config := testConfig.Clone()
 	config.MaxVersion = VersionTLS12
 	config.CipherSuites = []uint16{TLS_RSA_WITH_RC4_128_SHA}
@@ -237,6 +242,9 @@ func TestDynamicRecordSizingWithStreamCipher(t *testing.T) {
 }
 
 func TestDynamicRecordSizingWithCBC(t *testing.T) {
+	if boring.Enabled() {
+		t.Skip("boring enabled, TLS_RSA_WITH_AES_256_CBC_SHA not supported")
+	}
 	config := testConfig.Clone()
 	config.MaxVersion = VersionTLS12
 	config.CipherSuites = []uint16{TLS_RSA_WITH_AES_256_CBC_SHA}
@@ -251,6 +259,9 @@ func TestDynamicRecordSizingWithAEAD(t *testing.T) {
 }
 
 func TestDynamicRecordSizingWithTLSv13(t *testing.T) {
+	if boring.Enabled() {
+		t.Skip("boring enabled, TLS > 1.2 not supported")
+	}
 	config := testConfig.Clone()
 	runDynamicRecordSizingTest(t, config)
 }

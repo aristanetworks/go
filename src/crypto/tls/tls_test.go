@@ -24,6 +24,8 @@ import (
 	"time"
 )
 
+import "crypto/internal/boring"
+
 var rsaCertPEM = `-----BEGIN CERTIFICATE-----
 MIIB0zCCAX2gAwIBAgIJAI/M7BYjwB+uMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV
 BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX
@@ -1071,6 +1073,9 @@ func TestConnectionState(t *testing.T) {
 		case VersionTLS12:
 			name = "TLSv12"
 		case VersionTLS13:
+			if boring.Enabled() {
+				t.Skip("boring enabled, TLS 1.3 not supported")
+			}
 			name = "TLSv13"
 		}
 		t.Run(name, func(t *testing.T) {

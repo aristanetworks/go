@@ -380,6 +380,9 @@ func TestClose(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
+	if boring.Enabled() {
+		t.Skip("boring enabled, unsupported TLS versions")
+	}
 	serverConfig := &Config{
 		Certificates: testConfig.Certificates,
 		MaxVersion:   VersionTLS11,
@@ -448,6 +451,9 @@ func TestSCTHandshake(t *testing.T) {
 }
 
 func testSCTHandshake(t *testing.T, version uint16) {
+	if boring.Enabled() && version == VersionTLS13 {
+		t.Skip("boring enabled, TLS 1.3 not supported")
+	}
 	expected := [][]byte{[]byte("certificate"), []byte("transparency")}
 	serverConfig := &Config{
 		Certificates: []Certificate{{
@@ -777,23 +783,36 @@ func runServerTestForVersion(t *testing.T, template *serverTest, version, option
 
 func runServerTestTLS10(t *testing.T, template *serverTest) {
 	if boring.Enabled() {
-		t.Skip("boring enabled, TLS < 1.2 not supported")
+		t.Log("boring enabled, TLS < 1.2 not supported")
+		return
 	}
 	runServerTestForVersion(t, template, "TLSv10", "-tls1")
 }
 
 func runServerTestTLS11(t *testing.T, template *serverTest) {
 	if boring.Enabled() {
-		t.Skip("boring enabled, TLS < 1.2 not supported")
+		t.Log("boring enabled, openssl 1.1.1 implementation is not supported")
+		return
 	}
 	runServerTestForVersion(t, template, "TLSv11", "-tls1_1")
 }
 
 func runServerTestTLS12(t *testing.T, template *serverTest) {
+	// TLS reference tests run a connection against a reference implementation
+	// (OpenSSL v1.1.1) of TLS and record the bytes of the resulting connection,
+	// but only OpenSSL v1.0.2k is supported in the testing environment.
+	if boring.Enabled() {
+		t.Log("boring enabled, openssl 1.1.1 implementation is not supported")
+		return
+	}
 	runServerTestForVersion(t, template, "TLSv12", "-tls1_2")
 }
 
 func runServerTestTLS13(t *testing.T, template *serverTest) {
+	if boring.Enabled() {
+		t.Log("boring enabled, TLS > 1.2 not supported")
+		return
+	}
 	runServerTestForVersion(t, template, "TLSv13", "-tls1_3")
 }
 
