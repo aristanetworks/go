@@ -34,7 +34,7 @@ type sha1Ctx struct {
 	nx     uint32
 }
 
-func (h *sha1Hash) Reset()               { C._goboringcrypto_SHA1_Init(&h.ctx) }
+func (h *sha1Hash) Reset()               { C._goboringcrypto_private_SHA1_Init(&h.ctx) }
 func (h *sha1Hash) Size() int            { return 20 }
 func (h *sha1Hash) BlockSize() int       { return 64 }
 func (h *sha1Hash) Sum(in []byte) []byte { return append(in, h.sum()...) }
@@ -108,7 +108,7 @@ type sha224Hash struct {
 	out [224 / 8]byte
 }
 
-func (h *sha224Hash) Reset()               { C._goboringcrypto_SHA224_Init(&h.ctx) }
+func (h *sha224Hash) Reset()               { C._goboringcrypto_private_SHA224_Init(&h.ctx) }
 func (h *sha224Hash) Size() int            { return 224 / 8 }
 func (h *sha224Hash) BlockSize() int       { return 64 }
 func (h *sha224Hash) Sum(in []byte) []byte { return append(in, h.sum()...) }
@@ -140,7 +140,7 @@ type sha256Hash struct {
 	out [256 / 8]byte
 }
 
-func (h *sha256Hash) Reset()               { C._goboringcrypto_SHA256_Init(&h.ctx) }
+func (h *sha256Hash) Reset()               { C._goboringcrypto_private_SHA256_Init(&h.ctx) }
 func (h *sha256Hash) Size() int            { return 256 / 8 }
 func (h *sha256Hash) BlockSize() int       { return 64 }
 func (h *sha256Hash) Sum(in []byte) []byte { return append(in, h.sum()...) }
@@ -271,7 +271,7 @@ type sha384Hash struct {
 	out [384 / 8]byte
 }
 
-func (h *sha384Hash) Reset()               { C._goboringcrypto_SHA384_Init(&h.ctx) }
+func (h *sha384Hash) Reset()               { C._goboringcrypto_private_SHA384_Init(&h.ctx) }
 func (h *sha384Hash) Size() int            { return 384 / 8 }
 func (h *sha384Hash) BlockSize() int       { return 128 }
 func (h *sha384Hash) Sum(in []byte) []byte { return append(in, h.sum()...) }
@@ -303,7 +303,7 @@ type sha512Hash struct {
 	out [512 / 8]byte
 }
 
-func (h *sha512Hash) Reset()               { C._goboringcrypto_SHA512_Init(&h.ctx) }
+func (h *sha512Hash) Reset()               { C._goboringcrypto_private_SHA512_Init(&h.ctx) }
 func (h *sha512Hash) Size() int            { return 512 / 8 }
 func (h *sha512Hash) BlockSize() int       { return 128 }
 func (h *sha512Hash) Sum(in []byte) []byte { return append(in, h.sum()...) }
