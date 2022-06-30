@@ -14,6 +14,7 @@ package cgotest
 import "C"
 
 import (
+	"os"
 	"runtime"
 	"runtime/debug"
 	"sync/atomic"
@@ -22,7 +23,19 @@ import (
 	"cgotest/issue9400"
 )
 
+func isAlpineLinux() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+	fi, err := os.Lstat("/etc/alpine-release")
+	return err == nil && fi.Mode().IsRegular()
+}
+
 func test9400(t *testing.T) {
+	if isAlpineLinux() {
+		t.Skip("skip failing test on Alpine (golang.org/issue/39857)")
+	}
+
 	// We synchronize through a shared variable, so we need two procs
 	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(2))
 
